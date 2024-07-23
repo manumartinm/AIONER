@@ -68,16 +68,15 @@ def parse_bcdr_to_format(df: pd.DataFrame, entity_map: Optional[Dict[int, str]])
 
 
 def from_hf_to_pubtator(df: pd.DataFrame) -> List[str]:
-    data = []
-    print(df)
-    for index, row in df.iterrows():
-        tokens = row['tokens']
-        sentence_id = row['id']
-        text = ' '.join(tokens)
+  data = []
+  for index, row in df.iterrows():
+    tokens = row['tokens']
+    sentence_id = row['id']
+    text = ' '.join(tokens)
 
-        data.append(f'{sentence_id}|t|{text}\n')
+    data.append(f'{sentence_id}|t|{text}\n')
 
-    return data
+  return data
 
 def parse_bcdr_to_pubtator(df: pd.DataFrame) -> List[str]:
     new_data = []
@@ -226,11 +225,12 @@ if not os.path.exists('./custom_vocab'):
 for dataset in datasets_map.keys():
     wrangler = NERBenchmarkDataWrangler(dataset, datasets_map)
     train_df = wrangler.get_format_data('train')
-    train_pubtator = wrangler.to_pubtator('train')
-    print(train_df)
-    labels = train_df['labels'].unique().tolist()
+    valid_df = wrangler.get_format_data('valid')
+    test_df = wrangler.get_format_data('test')
 
-    print(labels)
+    train_pubtator = wrangler.to_pubtator('train')
+    labels = train_df['labels'].unique().tolist() + valid_df['labels'].unique().tolist() + test_df['labels'].unique().tolist()
+    labels = list(set(labels))
 
     if not os.path.exists(f'./custom_datasets/{dataset}'):
         os.makedirs(f'./custom_datasets/{dataset}')
@@ -239,7 +239,7 @@ for dataset in datasets_map.keys():
         os.makedirs(f'./custom_vocab/{dataset}')
 
     with open(f'./custom_datasets/{dataset}/{dataset}.txt', 'w') as f:
-        f.write(''.join(train_pubtator))
+        f.write('\n'.join(train_pubtator))
 
     with open(f'./custom_vocab/{dataset}/{dataset}.txt', 'w') as f:
         f.write('\n'.join(labels))
