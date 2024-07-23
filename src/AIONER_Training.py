@@ -173,4 +173,3 @@ if __name__=="__main__":
         
     if os.path.exists(infiles['devtemp']):  #delete tmp file
         os.remove(infiles['devtemp'])
-                             

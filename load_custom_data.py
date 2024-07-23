@@ -31,9 +31,6 @@ def parse_bcdr_to_format(df: pd.DataFrame, entity_map: Optional[Dict[int, str]])
   new_data = []
   checkpoint_path = '/content/AIONER/pretrained_models/bioformer-cased-v1.0/'
 
-  print(os.path.exists(checkpoint_path))
-  print(os.listdir(checkpoint_path))
-
   tokenizer = AutoTokenizer.from_pretrained(checkpoint_path, use_fast=True, do_lower_case=True)
 
   for index, row in df.iterrows():
@@ -56,9 +53,7 @@ def parse_bcdr_to_format(df: pd.DataFrame, entity_map: Optional[Dict[int, str]])
                       labels[i] = 'B-' + entity['type']
                   else:
                       labels[i] = 'I-' + entity['type']
-      if index == 0:
-        print(labels)
-        print(tokens)
+
       # Agregar los tokens y etiquetas al nuevo dataset
       for i, token in enumerate(tokens):
           new_data.append({

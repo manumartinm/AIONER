@@ -175,7 +175,7 @@ def NER_main_path(inpath, para_set, outpath, modelfile):
         
         if para_set['encoder_type']=='pubmedbert':
             vocabfiles={'labelfile':para_set['vocabfile'],
-                        'checkpoint_path':'../pretrained_mode ls/BiomedNLP-PubMedBERT-base-uncased-abstract/',
+                        'checkpoint_path':'../pretrained_mode/BiomedNLP-PubMedBERT-base-uncased-abstract/',
                         'lowercase':True,
                         } 
         elif para_set['encoder_type']=='bioformer':
@@ -183,7 +183,9 @@ def NER_main_path(inpath, para_set, outpath, modelfile):
                         'checkpoint_path':'../pretrained_models/bioformer-cased-v1.0/',
                         'lowercase':False,
                         }    
-        
+        print(vocabfiles)
+        print(os.path.exists(vocabfiles['checkpoint_path']))
+        print(os.path.exists(modelfile))
         nn_model=HUGFACE_NER(vocabfiles)
         nn_model.build_encoder()
         if para_set['decoder_type']=='crf': 

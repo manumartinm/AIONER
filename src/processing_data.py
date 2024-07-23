@@ -85,12 +85,12 @@ def out_BIO_BERT_crf(file,raw_pre,raw_input,label_set):
                 label_tag='O'
             fout.write(raw_input[i][j][0]+'\t'+raw_input[i][j][1]+'\t'+label_tag+'\n')
         fout.write('\n')
-    fout.close() 
+    fout.close()
 
 def out_BIO_BERT_crf_fn(raw_pre,raw_input,label_set):
     fout=io.StringIO()
     for i in range(len(raw_input)):
-        
+
         for j in range(len(raw_input[i])):
             if raw_input[i][j][-1]<len(raw_pre[i]):
                 label_id = raw_pre[i][raw_input[i][j][-1]] 

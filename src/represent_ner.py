@@ -1,13 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Aug 30 19:54:17 2021
-
-@author: luol2
-"""
-
-
-
-import os, sys
 import numpy as np
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from transformers import AutoTokenizer
