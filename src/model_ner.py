@@ -9,10 +9,8 @@ from represent_ner import Hugface_RepresentationLayer
 from tf_crf2 import CRF
 from tensorflow.keras.layers import *
 from tensorflow.keras.models import Model
-from tensorflow.keras.optimizers import RMSprop, SGD, Adam, Adadelta, Adagrad,Nadam
-from transformers import TFBertModel, BertConfig,TFElectraModel,TFAutoModel
-import numpy as np
-import sys
+from tensorflow.keras.optimizers import Adam
+from transformers import TFAutoModel
 
 
 class LRSchedule_LINEAR(tf.keras.optimizers.schedules.LearningRateSchedule):
@@ -37,15 +35,12 @@ class LRSchedule_LINEAR(tf.keras.optimizers.schedules.LearningRateSchedule):
             warmup_lr = (self.init_lr - self.init_warmup_lr)/self.warmup_steps * step+self.init_warmup_lr
         else:
             warmup_lr=1000.0
-        #print('\n.......warmup_lr:',warmup_lr)
         decay_lr = tf.math.maximum(
             self.final_lr,
             self.init_lr - (step - self.warmup_steps)/self.decay_steps*(self.init_lr - self.final_lr)
         )
-        #print('\n.....decay_lr:',decay_lr)
         return tf.math.minimum(warmup_lr,decay_lr)
 
-        
         
 class HUGFACE_NER(): #huggingface transformers
     def __init__(self, model_files):
@@ -56,7 +51,6 @@ class HUGFACE_NER(): #huggingface transformers
         self.lowercase=model_files['lowercase']
         self.rep = Hugface_RepresentationLayer(self.checkpoint_path, self.label_file, lowercase=self.lowercase)
         
-            
     def build_encoder(self):
         print('...vocab len:',self.rep.vocab_len)
         plm_model = TFAutoModel.from_pretrained(self.checkpoint_path, from_pt=True)
@@ -65,19 +59,16 @@ class HUGFACE_NER(): #huggingface transformers
         x2_in = Input(shape=(self.maxlen,),dtype=tf.int32, name='token_type_ids')
         x3_in = Input(shape=(self.maxlen,),dtype=tf.int32, name='attention_mask')
         x = plm_model(x1_in, token_type_ids=x2_in, attention_mask=x3_in)[0]
-        #dense = TimeDistributed(Dense(512, activation='relu'), name='dense1')(x)
         self.encoder = Model (inputs=[x1_in,x2_in,x3_in], outputs=x,name='hugface_encoder')
         self.encoder.summary()
         
     def build_softmax_decoder(self):
-
         x1_in = Input(shape=(self.maxlen,),dtype=tf.int32)
         x2_in = Input(shape=(self.maxlen,),dtype=tf.int32)
         x3_in = Input(shape=(self.maxlen,),dtype=tf.int32)  
         features = self.encoder([x1_in,x2_in,x3_in])
-        #features = Dropout(0.4)(features)
         features = TimeDistributed(Dense(128, activation='relu'), name='dense2')(features)
-        features= Dropout(0.1)(features)
+        features = Dropout(0.1)(features)
         output = TimeDistributed(Dense(self.rep.label_table_size, activation='softmax'), name='softmax')(features)
         self.model = Model(inputs=[x1_in,x2_in,x3_in], outputs=output, name="hugface_softmax")
 
@@ -89,7 +80,6 @@ class HUGFACE_NER(): #huggingface transformers
             decay_steps=400)
 
         opt = Adam(learning_rate = lr_schedule)
-        #opt = Adam(lr=5e-6) 
         self.model.compile(
             optimizer=opt,
             loss='sparse_categorical_crossentropy',
@@ -98,14 +88,12 @@ class HUGFACE_NER(): #huggingface transformers
         self.model.summary()
         
     def build_crf_decoder(self):
-
         x1_in = Input(shape=(self.maxlen,),dtype=tf.int32)
         x2_in = Input(shape=(self.maxlen,),dtype=tf.int32)
         x3_in = Input(shape=(self.maxlen,),dtype=tf.int32)  
         features = self.encoder([x1_in,x2_in,x3_in])
-        #features = Dropout(0.4)(features)
         features = TimeDistributed(Dense(128, activation='relu'), name='dense2')(features)
-        features= Dropout(0.1)(features)
+        features = Dropout(0.1)(features)
         crf=CRF(self.rep.label_table_size,name='crf_layer')
         output = crf(features)
         self.model = Model(inputs=[x1_in,x2_in,x3_in], outputs=output, name="hugface_crf")
@@ -124,7 +112,12 @@ class HUGFACE_NER(): #huggingface transformers
         )
         self.model.summary()
         
-    def load_model(self,model_file):
-        self.model.load_weights(model_file)
+    def load_model(self,model_file, decoder_type='softmax'):
+        if decoder_type == 'softmax':
+            self.build_softmax_decoder()
+        else:
+            self.build_crf_decoder()
+            
+        self.model.load_weights(model_file, by_name=True, skip_mismatch=True)
         self.model.summary()  
         print('load HUGFACE model done!')

@@ -188,12 +188,8 @@ def NER_main_path(inpath, para_set, outpath, modelfile):
         print(os.path.exists(modelfile))
         nn_model=HUGFACE_NER(vocabfiles)
         nn_model.build_encoder()
-        if para_set['decoder_type']=='crf': 
-            nn_model.build_crf_decoder()
-        elif para_set['decoder_type']=='softmax':
-            nn_model.build_softmax_decoder()
             
-        nn_model.load_model(modelfile)
+        nn_model.load_model(modelfile, para_set['decoder_type'])
             
         #tagging text
         print("begin tagging........")

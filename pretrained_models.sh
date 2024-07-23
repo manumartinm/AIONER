@@ -1,8 +1,4 @@
-$base_url = "https://huggingface.co/lingbionlp/AIONER-0415/resolve/main/pretrained_models.zip"
-
-# Download the file & unzip
-
-wget $base_url
+wget "https://huggingface.co/lingbionlp/AIONER-0415/resolve/main/pretrained_models.zip"
 unzip pretrained_models.zip
 
 # Remove the zip file
