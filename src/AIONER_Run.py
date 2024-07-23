@@ -175,12 +175,12 @@ def NER_main_path(inpath, para_set, outpath, modelfile):
         
         if para_set['encoder_type']=='pubmedbert':
             vocabfiles={'labelfile':para_set['vocabfile'],
-                        'checkpoint_path':'../pretrained_mode/BiomedNLP-PubMedBERT-base-uncased-abstract/',
+                        'checkpoint_path':'/content/AIONER/pretrained_models/BiomedNLP-PubMedBERT-base-uncased-abstract/',
                         'lowercase':True,
                         } 
         elif para_set['encoder_type']=='bioformer':
             vocabfiles={'labelfile':para_set['vocabfile'],
-                        'checkpoint_path':'../pretrained_models/bioformer-cased-v1.0/',
+                        'checkpoint_path':'/content/AIONER/pretrained_models/bioformer-cased-v1.0/',
                         'lowercase':False,
                         }    
         print(vocabfiles)
