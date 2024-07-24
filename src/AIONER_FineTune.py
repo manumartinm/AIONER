@@ -154,9 +154,9 @@ if __name__=="__main__":
         
     if args.modeltype=='pubmedbert':
         vocabfiles={'labelfile':args.vocabfile,
-                    'checkpoint_path':'../pretrained_models/BiomedNLP-PubMedBERT-base-uncased-abstract/',
+                    'checkpoint_path':'/content/AIONER/pretrained_models/BiomedNLP-PubMedBERT-base-uncased-abstract/',
                     'lowercase':True,
-                    'pretrained':'../pretrained_models/AIONER/PubmedBERT-CRF-AIONER.h5'
+                    'pretrained':'/content/AIONER/pretrained_models/AIONER/PubmedBERT-CRF-AIONER.h5'
                     }
             
         model_out={'BEST':args.outpath+'pubmedbert-crf-best-finetune.h5',
@@ -167,9 +167,9 @@ if __name__=="__main__":
         
     elif args.modeltype=='bioformer':
         vocabfiles={'labelfile':args.vocabfile,
-                    'checkpoint_path':'../pretrained_models/bioformer-cased-v1.0/',
+                    'checkpoint_path':'/content/AIONER/pretrained_models/bioformer-cased-v1.0/',
                     'lowercase':False,
-                    'pretrained':'../pretrained_models/AIONER/Bioformer-softmax-AIONER.h5'
+                    'pretrained':'/content/AIONER/pretrained_models/AIONER/Bioformer-softmax-AIONER.h5'
                     }
 
         model_out={'BEST':args.outpath+'bioformer-softmax-best-finetune.h5',

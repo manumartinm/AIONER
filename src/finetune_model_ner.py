@@ -9,11 +9,8 @@ from represent_ner import Hugface_RepresentationLayer
 from tensorflow.keras.layers import *
 from tensorflow.keras.models import Model
 from tf_crf2 import CRF
-from tensorflow.keras.optimizers import RMSprop, SGD, Adam, Adadelta, Adagrad,Nadam
-from transformers import TFBertModel, BertConfig,TFElectraModel,TFAutoModel
-import numpy as np
-import sys
-
+from tensorflow.keras.optimizers import Adam
+from transformers import TFAutoModel
 
 class LRSchedule_LINEAR(tf.keras.optimizers.schedules.LearningRateSchedule):
     def __init__(

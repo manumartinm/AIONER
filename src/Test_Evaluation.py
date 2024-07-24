@@ -79,7 +79,12 @@ def strict_mention_metric(pre_result, gold_result):
     else:
         strict_P=TP/Pre_num
     strict_R=TP/Gold_num
-    strict_F1=2*strict_P*strict_R/(strict_P+strict_R)
+
+    if strict_P+strict_R==0:
+        strict_F1=0
+    else:
+        strict_F1=2*strict_P*strict_R/(strict_P+strict_R)
+
     # print("Overall: P/R/F=%.5f/%.5f/%.5f"% (strict_P,strict_R,strict_F1))
     print("Overall: P/R/F=%.2f/%.2f/%.2f"% (strict_P*100,strict_R*100,strict_F1*100))
     
@@ -113,7 +118,12 @@ def strict_mention_metric(pre_result, gold_result):
     else:
         relaxed_P=pTP/Pre_num
     relaxed_R=rTP/Gold_num
-    relaxed_F1=2*relaxed_P*relaxed_R/(relaxed_P+relaxed_R)
+    
+    if relaxed_P+relaxed_R==0:
+        relaxed_F1=0
+    else:
+        relaxed_F1=2*relaxed_P*relaxed_R/(relaxed_P+relaxed_R)
+
     # print("Overall: P/R/F=%.5f/%.5f/%.5f"% (relaxed_P,relaxed_R,relaxed_F1))
     print("Overall: P/R/F=%.2f/%.2f/%.2f"% (relaxed_P*100,relaxed_R*100,relaxed_F1*100))
 
@@ -130,7 +140,10 @@ def pubtatorfile_eva(goldfile,prefile):
     for doc in gold_all:
         temp_result={}
         lines=doc.split('\n')
-        pmid=lines[0].split('|t|')[0]
+        split_token=lines[0].split('|')[1]
+        print(lines[0].split('|'))
+        print(split_token)
+        pmid=lines[0].split(f'|{split_token}|')[0]
         for i in range(2,len(lines)):
             seg=lines[i].split('\t')
                 
@@ -148,15 +161,20 @@ def pubtatorfile_eva(goldfile,prefile):
     for doc in pre_all:
         temp_result={}
         lines=doc.split('\n')
-        pmid=lines[0].split('|t|')[0]
+        split_token=lines[0].split('|')[1]
+        print(lines[0].split('|'))
+        print(split_token)
+        pmid=lines[0].split(f'|{split_token}|')[0]
         for i in range(2,len(lines)):
             seg=lines[i].split('\t')
+            print(seg)
             if seg[4].lower() not in temp_result.keys():
                 temp_result[seg[4].lower()]=[[seg[1],seg[2]]]
             else:
                 temp_result[seg[4].lower()].append([seg[1],seg[2]])
         pre_result[pmid]=temp_result
-
+    print('gold:',gold_result)
+    print('pre:',pre_result)
     # mention_metric(pre_result, gold_result)
     strict_mention_metric(pre_result, gold_result)
     

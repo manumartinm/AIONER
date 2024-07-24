@@ -27,6 +27,7 @@ class Hugface_RepresentationLayer(object):
         self.label_table_size=0
         self.load_label_vocab(label_file,self.label_2_index,self.index_2_label)
         self.label_table_size=len(self.label_2_index)
+
         self.vocab_len=len(self.tokenizer)
        
     def load_label_vocab(self,fea_file,fea_index,index_2_label):
@@ -57,16 +58,20 @@ class Hugface_RepresentationLayer(object):
                     old_new_token_map.append(i)
                     ori_i+=1
                 label_list[i]=labels[word_index[i]]
-                label_list_index.append(self.label_2_index[label_list[i]])
+
+                if label_list[i] == '':
+                    label_list[i] = 'O'
+                key = f'B-{label_list[i]}' if label_list[i] != 'O' else label_list[i]
+                label_list_index.append(self.label_2_index[key])
                 i+=1
                 while word_index[i]==first_index and word_index[i]!=None:
-                    #print(first_index)
                     if labels[first_index].startswith("B-"):
                         label_list[i]='I-'+labels[first_index][2:]
                         label_list_index.append(self.label_2_index[label_list[i]])
                     else:
-                        label_list[i]=labels[word_index[i]]
-                        label_list_index.append(self.label_2_index[label_list[i]])
+                        label_list[i]=labels[word_index[i]] if labels[word_index[i]]!='' else 'O'
+                        key = f'B-{label_list[i]}' if label_list[i] != 'O' else label_list[i]
+                        label_list_index.append(self.label_2_index[key])
                     i+=1
                         
         bert_text_label=[]

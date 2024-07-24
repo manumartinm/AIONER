@@ -18,8 +18,11 @@ def ml_intext(file):
         lines=sents.split('\n')
         temp_sentece=[]
         for i in range(0,len(lines)):
-            seg=lines[i].split('\t')
-            temp_sentece.append(seg[:])
+            if '|a|' in lines[i] or '|t|' in lines[i]:
+                continue
+
+            id, start, finish, text, type = lines[i].split('\t')
+            temp_sentece.append([text,type])
         
         data_list.append(temp_sentece)
     #print(data_list)
@@ -36,8 +39,11 @@ def ml_intext_fn(ml_input):
         lines=sents.split('\n')
         temp_sentece=[]
         for i in range(0,len(lines)):
-            seg=lines[i].split('\t')
-            temp_sentece.append(seg[:])
+            if '|a|' in lines[i] or '|t|' in lines[i]:
+                continue
+
+            id, start, finish, text, type = lines[i].split('\t')
+            temp_sentece.append([text,type])
         
         data_list.append(temp_sentece)
     #print(data_list)
