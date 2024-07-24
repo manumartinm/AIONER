@@ -9,6 +9,7 @@ Pubtator file evaluation, used for test file evaluation
 import copy
 import argparse
 import json
+import os
 
 #if overlap 
 def strict_mention_metric(pre_result, gold_result):
@@ -198,6 +199,9 @@ if __name__=='__main__':
     parser.add_argument('--output', '-o', help="output file",default='')
     args = parser.parse_args()
     metrics = pubtatorfile_eva(args.gold, args.pred)
+
+    if not os.path.exists(os.path.dirname(args.output)):
+        os.makedirs(os.path.dirname(args.output))
 
     with open(args.output, 'w') as f:
         json.dump(metrics, f, indent=4)

@@ -5,3 +5,4 @@ tensorflow-addons==0.16.1
 spacy==3.2.4
 transformers==4.18.0
 datasets==1.16.0
+nltk

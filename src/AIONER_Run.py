@@ -12,6 +12,9 @@ import time
 import re
 import io
 import bioc
+import nltk
+from nltk.corpus import stopwords
+from transformers import AutoTokenizer
 
 from model_ner import HUGFACE_NER
 from processing_data import ml_intext_fn,out_BIO_BERT_crf_fn,out_BIO_BERT_softmax_fn
@@ -27,32 +30,54 @@ if len(gpu) > 0:
 import stanza
 nlp = stanza.Pipeline(lang='en', processors={'tokenize': 'spacy'},package='None') #package='craft'
 
+nltk.download('stopwords')
 
 def pre_token(sentence):
-    sentence=re.sub("([\=\/\(\)\<\>\+\-\_])"," \\1 ",sentence)
-    sentence=re.sub("[ ]+"," ",sentence);
-    return sentence
+    # Convertir a minúsculas
+    sentence = sentence.lower()
+    
+    # Eliminar caracteres raros
+    sentence = re.sub(r"[^a-zA-Z0-9\s]", " ", sentence)
+    
+    # Insertar espacios alrededor de algunos caracteres para mantener la separación
+    sentence = re.sub(r"([\=\/\(\)\<\>\+\-\_])", r" \1 ", sentence)
+    
+    # Eliminar espacios adicionales
+    sentence = re.sub(r"\s+", " ", sentence).strip()
+    
+    # Tokenizar la oración
+    tokens = sentence.split()
+    
+    # Eliminar stopwords
+    stop_words = set(stopwords.words('english'))
+    tokens = [word for word in tokens if word not in stop_words]
+    
+    return ' '.join(tokens)
 
-def ssplit_token(in_text,entity_type,max_len=400):
-    #print('max_len:',max_len)
-    fout=io.StringIO()
+def ssplit_token(in_text, model_path='../pretrained_models/Bioformer-cased-v1.0/', entity_type='ALL', max_len=400):
+    fout = io.StringIO()
 
-    in_text=in_text.strip()
-    in_text=pre_token(in_text)
-    doc_stanza = nlp(in_text)
-    strlen=0
-    for sent in doc_stanza.sentences:
-        fout.write('<'+entity_type+'>\tO\n')
-        for word in sent.words:
-            strlen+=1
-            fout.write(word.text+'\tO\n')
-            if strlen>=max_len:
-                # print('long sentence:',strlen)
-                fout.write('\n')
-                strlen=0
-        fout.write('</'+entity_type+'>\tO\n')
-        fout.write('\n')
-        strlen=0           
+    # Cargar el tokenizador
+    tokenizer = AutoTokenizer.from_pretrained(model_path)
+    
+    # Preprocesar el texto
+    in_text = in_text.strip()
+    in_text = pre_token(in_text)
+    
+    # Tokenizar el texto en palabras
+    tokens = tokenizer.tokenize(in_text)
+    
+    strlen = 0
+    fout.write(f'<{entity_type}>\tO\n')
+    for token in tokens:
+        fout.write(f'{token}\tO\n')
+        strlen += 1
+        if strlen >= max_len:
+            fout.write('\n')
+            strlen = 0
+    fout.write(f'</{entity_type}>\tO\n')
+    fout.write('\n')
+    
     return fout.getvalue()
 
 def ml_tagging(ml_input,nn_model,decoder_type='crf'):
@@ -73,9 +98,9 @@ def ml_tagging(ml_input,nn_model,decoder_type='crf'):
     return test_decode_temp
 
 # only machine learning-based method
-def ML_Tag(text,ml_model,decoder_type='crf',entity_type='ALL'):
+def ML_Tag(text,ml_model, vocabfiles, decoder_type='crf',entity_type='ALL'):
 
-    conll_in=ssplit_token(text, entity_type, max_len=ml_model.maxlen)
+    conll_in=ssplit_token(text, vocabfiles['checkpoint_path'], entity_type, max_len=ml_model.maxlen)
     #print(ssplit_token) 
 #    print('ssplit token:',time.time()-startTime)
     
@@ -89,7 +114,7 @@ def ML_Tag(text,ml_model,decoder_type='crf',entity_type='ALL'):
     
     return final_result
 
-def NER_PubTator(infile,outfile,nn_model,para_set):
+def NER_PubTator(infile,outfile,nn_model,para_set, vocabfiles):
 
     with open(infile, 'r',encoding='utf-8') as fin:
         with open(outfile,'w', encoding='utf8') as fout:
@@ -110,7 +135,9 @@ def NER_PubTator(infile,outfile,nn_model,para_set):
                 abstract=seg[1]
                 
                 intext=title+' '+abstract
-                tag_result=ML_Tag(intext,nn_model,decoder_type=para_set['decoder_type'],entity_type=para_set['entity_type'])
+                               
+                tag_result=ML_Tag(intext,nn_model, vocabfiles,decoder_type=para_set['decoder_type'],entity_type=para_set['entity_type'])
+                print('tag_result:',tag_result)
                 fout.write(lines[0]+'\n'+lines[1]+'\n')
                 for ele in tag_result:
                     ent_start = ele[0]
@@ -183,9 +210,7 @@ def NER_main_path(inpath, para_set, outpath, modelfile):
                         'checkpoint_path':'/content/AIONER/pretrained_models/bioformer-cased-v1.0/',
                         'lowercase':False,
                         }    
-        print(vocabfiles)
-        print(os.path.exists(vocabfiles['checkpoint_path']))
-        print(os.path.exists(modelfile))
+
         nn_model=HUGFACE_NER(vocabfiles)
         nn_model.build_encoder()
             
@@ -213,9 +238,9 @@ def NER_main_path(inpath, para_set, outpath, modelfile):
                         break
                 fin.close()
                 if(input_format == "PubTator"):
-                    NER_PubTator(inpath+infile,outpath+infile,nn_model,para_set)
+                    NER_PubTator(inpath+infile,outpath+infile,nn_model,para_set, vocabfiles)
                 elif(input_format == "BioC"):
-                    NER_BioC(inpath+infile,outpath+infile,nn_model,para_set)    
+                    NER_BioC(inpath+infile,outpath+infile,nn_model,para_set, vocabfiles)    
         
         print('tag done:',time.time()-start_time)
     
