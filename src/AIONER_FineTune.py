@@ -38,6 +38,7 @@ class NERCallback_PLM(callbacks.Callback):
         self.max_train=0.0
         self.max_train_epoch=0
         self.patein_es=0
+        
     def on_epoch_end(self, epoch, logs=None):
         #_lr=0
         current_acc = logs.get("accuracy")

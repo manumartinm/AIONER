@@ -42,8 +42,6 @@ class LRSchedule_LINEAR(tf.keras.optimizers.schedules.LearningRateSchedule):
         #print('\n.....decay_lr:',decay_lr)
         return tf.math.minimum(warmup_lr,decay_lr)
 
-
-        
 class HUGFACE_NER(): #huggingface transformers
     def __init__(self, model_files):
         self.model_type='HUGFACE'

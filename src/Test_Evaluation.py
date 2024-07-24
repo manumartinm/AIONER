@@ -8,6 +8,7 @@ Pubtator file evaluation, used for test file evaluation
 """
 import copy
 import argparse
+import json
 
 #if overlap 
 def strict_mention_metric(pre_result, gold_result):
@@ -127,6 +128,15 @@ def strict_mention_metric(pre_result, gold_result):
     # print("Overall: P/R/F=%.5f/%.5f/%.5f"% (relaxed_P,relaxed_R,relaxed_F1))
     print("Overall: P/R/F=%.2f/%.2f/%.2f"% (relaxed_P*100,relaxed_R*100,relaxed_F1*100))
 
+    return {
+        "strict_P": strict_P,
+        "strict_R": strict_R,
+        "strict_F1": strict_F1,
+        "relaxed_P": relaxed_P,
+        "relaxed_R": relaxed_R,
+        "relaxed_F1": relaxed_F1
+    }
+
 def pubtatorfile_eva(goldfile,prefile):
    
     gold_fin=open(goldfile,'r',encoding='utf-8')
@@ -175,13 +185,19 @@ def pubtatorfile_eva(goldfile,prefile):
         pre_result[pmid]=temp_result
     print('gold:',gold_result)
     print('pre:',pre_result)
-    # mention_metric(pre_result, gold_result)
-    strict_mention_metric(pre_result, gold_result)
+
+    strict_data = strict_mention_metric(pre_result, gold_result)
+
+    return strict_data
     
 if __name__=='__main__':
     
     parser = argparse.ArgumentParser(description='Evaluation, python Test_Evaluation.py -g goldfile -p predfile ')
     parser.add_argument('--gold', '-g', help="gold standard file",default='')
     parser.add_argument('--pred', '-p', help="prediction file",default='')
+    parser.add_argument('--output', '-o', help="output file",default='')
     args = parser.parse_args()
-    pubtatorfile_eva(args.gold, args.pred)
+    metrics = pubtatorfile_eva(args.gold, args.pred)
+
+    with open(args.output, 'w') as f:
+        json.dump(metrics, f, indent=4)
