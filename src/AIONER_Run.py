@@ -11,8 +11,10 @@ import os
 import time
 import re
 import io
+import stanza
 import bioc
 import nltk
+import tensorflow as tf
 from nltk.corpus import stopwords
 from transformers import AutoTokenizer
 
@@ -20,14 +22,12 @@ from model_ner import HUGFACE_NER
 from processing_data import ml_intext_fn,out_BIO_BERT_crf_fn,out_BIO_BERT_softmax_fn
 from restore_index import NN_restore_index_fn
 
-import tensorflow as tf
+
 gpu = tf.config.list_physical_devices('GPU')
 print("Num GPUs Available: ", len(gpu))
 if len(gpu) > 0:
     tf.config.experimental.set_memory_growth(gpu[0], True)
 
-
-import stanza
 nlp = stanza.Pipeline(lang='en', processors={'tokenize': 'spacy'},package='None') #package='craft'
 
 nltk.download('stopwords')

@@ -6,7 +6,7 @@ Created on Tue Mar 10 16:34:12 2020
 """
 import numpy as np
 import io
-import sys
+
 #read ner text (word\tlabel), generate the list[[[w1,label],[w2,label]]]
 def ml_intext(file):
     fin=open(file,'r',encoding='utf-8')

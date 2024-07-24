@@ -8,10 +8,8 @@ Created on Wed Oct 19 09:58:03 2022
 
 
 import stanza
-import sys
 import os
 import io
-import json
 import re
 import argparse
 
