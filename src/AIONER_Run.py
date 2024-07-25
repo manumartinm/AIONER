@@ -33,51 +33,40 @@ nlp = stanza.Pipeline(lang='en', processors={'tokenize': 'spacy'},package='None'
 nltk.download('stopwords')
 
 def pre_token(sentence):
-    # Convertir a minúsculas
+    ## Pruebas para mejorar la calidad
     sentence = sentence.lower()
     
-    # Eliminar caracteres raros
     sentence = re.sub(r"[^a-zA-Z0-9\s]", " ", sentence)
-    
-    # Insertar espacios alrededor de algunos caracteres para mantener la separación
     sentence = re.sub(r"([\=\/\(\)\<\>\+\-\_])", r" \1 ", sentence)
-    
-    # Eliminar espacios adicionales
     sentence = re.sub(r"\s+", " ", sentence).strip()
     
-    # Tokenizar la oración
     tokens = sentence.split()
     
-    # Eliminar stopwords
     stop_words = set(stopwords.words('english'))
     tokens = [word for word in tokens if word not in stop_words]
     
     return ' '.join(tokens)
 
 def ssplit_token(in_text, model_path='../pretrained_models/Bioformer-cased-v1.0/', entity_type='ALL', max_len=400):
-    fout = io.StringIO()
+   #print('max_len:',max_len)
+    fout=io.StringIO()
 
-    # Cargar el tokenizador
-    tokenizer = AutoTokenizer.from_pretrained(model_path)
-    
-    # Preprocesar el texto
-    in_text = in_text.strip()
-    in_text = pre_token(in_text)
-    
-    # Tokenizar el texto en palabras
-    tokens = tokenizer.tokenize(in_text)
-    
-    strlen = 0
-    fout.write(f'<{entity_type}>\tO\n')
-    for token in tokens:
-        fout.write(f'{token}\tO\n')
-        strlen += 1
-        if strlen >= max_len:
-            fout.write('\n')
-            strlen = 0
-    fout.write(f'</{entity_type}>\tO\n')
-    fout.write('\n')
-    
+    in_text=in_text.strip()
+    in_text=pre_token(in_text)
+    doc_stanza = nlp(in_text)
+    strlen=0
+    for sent in doc_stanza.sentences:
+        fout.write('<'+entity_type+'>\tO\n')
+        for word in sent.words:
+            strlen+=1
+            fout.write(word.text+'\tO\n')
+            if strlen>=max_len:
+                # print('long sentence:',strlen)
+                fout.write('\n')
+                strlen=0
+        fout.write('</'+entity_type+'>\tO\n')
+        fout.write('\n')
+        strlen=0           
     return fout.getvalue()
 
 def ml_tagging(ml_input,nn_model,decoder_type='crf'):
@@ -137,7 +126,6 @@ def NER_PubTator(infile,outfile,nn_model,para_set, vocabfiles):
                 intext=title+' '+abstract
                                
                 tag_result=ML_Tag(intext,nn_model, vocabfiles,decoder_type=para_set['decoder_type'],entity_type=para_set['entity_type'])
-                print('tag_result:',tag_result)
                 fout.write(lines[0]+'\n'+lines[1]+'\n')
                 for ele in tag_result:
                     ent_start = ele[0]
